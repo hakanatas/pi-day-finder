@@ -47,9 +47,10 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
 
   // Load and add Roboto fonts with Turkish character support
   try {
+    const baseUrl = import.meta.env.BASE_URL;
     const [regularFont, boldFont] = await Promise.all([
-      loadFontAsBase64('/fonts/Roboto-Regular.ttf'),
-      loadFontAsBase64('/fonts/Roboto-Bold.ttf')
+      loadFontAsBase64(`${baseUrl}fonts/Roboto-Regular.ttf`),
+      loadFontAsBase64(`${baseUrl}fonts/Roboto-Bold.ttf`)
     ]);
 
     pdf.addFileToVFS('Roboto-Regular.ttf', regularFont);

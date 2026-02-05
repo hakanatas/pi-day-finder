@@ -13,7 +13,7 @@ export function usePiDigits(): PiDigitsState {
   useEffect(() => {
     const loadPiDigits = async () => {
       try {
-        const response = await fetch('/pi-digits.txt');
+        const response = await fetch(`${import.meta.env.BASE_URL}pi-digits.txt`);
 
         if (!response.ok) {
           throw new Error('Pi digits dosyasi yuklenemedi');
