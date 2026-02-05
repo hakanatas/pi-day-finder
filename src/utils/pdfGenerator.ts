@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import type { SearchResult } from '../types';
 import { formatPosition } from './piSearch';
+import { generateCertificateNumber } from './certificateCounter';
 
 interface CertificateData {
   date: Date;
@@ -181,6 +182,13 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
   pdf.setTextColor(120, 120, 120);
   pdf.setFont('courier', 'normal');
   pdf.text(afterPart, startX + beforeWidth + matchWidth, 158, { align: 'left' });
+
+  // Certificate number - top right corner
+  const certNumber = generateCertificateNumber();
+  pdf.setFontSize(8);
+  pdf.setTextColor(150, 150, 150);
+  pdf.setFont('Roboto', 'normal');
+  pdf.text(`Sertifika No: ${certNumber}`, pageWidth - 18, 22, { align: 'right' });
 
   // Footer - positioned inside border with Turkish characters
   pdf.setFontSize(9);
