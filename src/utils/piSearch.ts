@@ -53,5 +53,6 @@ export function searchAllFormats(piDigits: string, date: Date): SearchResult | n
 }
 
 export function formatPosition(position: number): string {
-  return position.toLocaleString('tr-TR');
+  // Format with space separator instead of dots (1.234.567 -> 1 234 567)
+  return position.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
