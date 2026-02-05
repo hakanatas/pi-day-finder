@@ -183,12 +183,12 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
   pdf.setFont('courier', 'normal');
   pdf.text(afterPart, startX + beforeWidth + matchWidth, 158, { align: 'left' });
 
-  // Certificate number - top right corner
+  // Certificate number - top left corner
   const certNumber = generateCertificateNumber();
   pdf.setFontSize(8);
   pdf.setTextColor(150, 150, 150);
   pdf.setFont('Roboto', 'normal');
-  pdf.text(`Sertifika No: ${certNumber}`, pageWidth - 18, 22, { align: 'right' });
+  pdf.text(`Sertifika No: ${certNumber}`, 18, 22, { align: 'left' });
 
   // Footer - positioned inside border with Turkish characters
   pdf.setFontSize(9);
