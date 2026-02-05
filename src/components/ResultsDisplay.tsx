@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, RefreshCw, Share2 } from 'lucide-react';
 import type { SearchResult } from '../types';
 import { formatPosition } from '../utils/piSearch';
-import { formatDateForDisplay, getFormatLabel } from '../utils/dateFormats';
+import { formatDateForDisplay } from '../utils/dateFormats';
 
 interface ResultsDisplayProps {
   result: SearchResult;
