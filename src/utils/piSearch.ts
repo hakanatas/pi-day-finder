@@ -18,9 +18,9 @@ export function searchPiDigits(
     };
   }
 
-  // Position is 1-indexed (after the decimal point)
-  // Pi = 3.14159... so position 1 = '1', position 2 = '4', etc.
-  const position = index + 1;
+  // Position is 0-indexed to match mypiday.com
+  // Pi = 3.14159... so position 0 = '1', position 1 = '4', etc.
+  const position = index;
 
   return {
     position,
