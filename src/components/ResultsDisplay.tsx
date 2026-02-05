@@ -79,14 +79,35 @@ export function ResultsDisplay({
 
       // Wait a bit then open email client
       setTimeout(() => {
-        const subject = encodeURIComponent('Pi Doğum Günü Sertifikam!');
+        const subject = encodeURIComponent('🎂 Pi Doğum Günü Sertifikam! π');
         const body = encodeURIComponent(
-          `Merhaba,\n\nDoğum günümü Pi sayısının ${formattedPosition}. basamağında buldum!\n\n` +
-          `Tarih: ${formattedDate}\n` +
-          `Pi'deki konum: ...${result.context.before}[${result.context.match}]${result.context.after}...\n\n` +
-          `Sertifikamı ekte bulabilirsiniz.\n\n` +
-          `Sen de kendi Pi gününü bul: ${window.location.href}\n\n` +
-          `#PiDay #MyPiDay`
+`Merhaba! 👋
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎉 DOĞUM GÜNÜMÜ Pİ SAYISINDA BULDUM! 🎉
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 Tarih: ${formattedDate}
+📍 Konum: ${formattedPosition}. basamak
+
+Pi sayısındaki görünümü:
+...${result.context.before}[${result.context.match}]${result.context.after}...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📎 Sertifikamı ekte bulabilirsiniz!
+
+🔗 Sen de kendi Pi gününü bul:
+${window.location.href}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+#PiDay #MyPiDay #π #Matematik
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌐 www.zekapusulasi.com
+🤖 FRC #6459 AG Robotik Takımı desteğiyle
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
       }, 500);
