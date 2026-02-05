@@ -1,70 +1,45 @@
 // Certificate counter utility using localStorage
-// Format: PI-YYYYMMDD-XXXXX
+// Format: PI-2026314-XXXXX (PI-YYYMMDD-TOTAL)
 
-interface CounterData {
-  date: string;
-  count: number;
-  total: number;
-}
+const STORAGE_KEY = 'pi-certificate-total';
 
-const STORAGE_KEY = 'pi-certificate-counter';
-
-function getTodayString(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
-}
-
-function getCounterData(): CounterData {
+function getTotal(): number {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      return parseInt(stored, 10) || 0;
     }
   } catch {
-    // If localStorage fails, return default
+    // If localStorage fails, return 0
   }
-  return { date: getTodayString(), count: 0, total: 0 };
+  return 0;
 }
 
-function saveCounterData(data: CounterData): void {
+function saveTotal(total: number): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEY, String(total));
   } catch {
     // Silently fail if localStorage is not available
   }
 }
 
 export function generateCertificateNumber(): string {
-  const today = getTodayString();
-  let data = getCounterData();
+  // Increment total
+  const newTotal = getTotal() + 1;
+  saveTotal(newTotal);
 
-  // Reset daily counter if it's a new day
-  if (data.date !== today) {
-    data = { date: today, count: 0, total: data.total };
-  }
+  // Get today's date for the format
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${year}${month}${day}`;
 
-  // Increment counters
-  data.count += 1;
-  data.total += 1;
-
-  // Save updated data
-  saveCounterData(data);
-
-  // Format: PI-YYYYMMDD-XXXXX
-  const serialNumber = String(data.count).padStart(5, '0');
-  return `PI-${today}-${serialNumber}`;
+  // Format: PI-YYYYMMDD-XXXXX (total number)
+  const serialNumber = String(newTotal).padStart(5, '0');
+  return `PI-${dateStr}-${serialNumber}`;
 }
 
 export function getTotalCertificates(): number {
-  const data = getCounterData();
-  return data.total;
-}
-
-export function getTodayCertificates(): number {
-  const data = getCounterData();
-  const today = getTodayString();
-  return data.date === today ? data.count : 0;
+  return getTotal();
 }
