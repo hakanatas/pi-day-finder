@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, RefreshCw, Share2, Mail } from 'lucide-react';
+import { Download, RefreshCw, Share2, Mail, X, Paperclip } from 'lucide-react';
 import type { SearchResult } from '../types';
 import { formatPosition } from '../utils/piSearch';
 import { formatDateForDisplay } from '../utils/dateFormats';
@@ -18,6 +19,7 @@ export function ResultsDisplay({
   onDownload,
   onSearchAgain,
 }: ResultsDisplayProps) {
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const formattedPosition = formatPosition(result.position);
   const formattedDate = formatDateForDisplay(date);
 
@@ -72,21 +74,23 @@ export function ResultsDisplay({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      // Then open email client
-      const subject = encodeURIComponent('Pi Doğum Günü Sertifikam!');
-      const body = encodeURIComponent(
-        `Merhaba,\n\nDoğum günümü Pi sayısının ${formattedPosition}. basamağında buldum!\n\n` +
-        `Tarih: ${formattedDate}\n` +
-        `Pi'deki konum: ...${result.context.before}[${result.context.match}]${result.context.after}...\n\n` +
-        `Sertifikamı ekte bulabilirsiniz.\n\n` +
-        `Sen de kendi Pi gününü bul: ${window.location.href}\n\n` +
-        `#PiDay #MyPiDay`
-      );
+      // Show modal reminder
+      setShowEmailModal(true);
 
-      window.location.href = `mailto:?subject=${subject}&body=${body}`;
-
-      alert('PDF indirildi! Lütfen e-postanıza ek olarak ekleyin.');
-    } catch (error) {
+      // Wait a bit then open email client
+      setTimeout(() => {
+        const subject = encodeURIComponent('Pi Doğum Günü Sertifikam!');
+        const body = encodeURIComponent(
+          `Merhaba,\n\nDoğum günümü Pi sayısının ${formattedPosition}. basamağında buldum!\n\n` +
+          `Tarih: ${formattedDate}\n` +
+          `Pi'deki konum: ...${result.context.before}[${result.context.match}]${result.context.after}...\n\n` +
+          `Sertifikamı ekte bulabilirsiniz.\n\n` +
+          `Sen de kendi Pi gününü bul: ${window.location.href}\n\n` +
+          `#PiDay #MyPiDay`
+        );
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }, 500);
+    } catch {
       alert('Bir hata oluştu. Lütfen tekrar deneyin.');
     }
   };
@@ -209,6 +213,64 @@ export function ResultsDisplay({
             Baska bir tarih ara
           </button>
         </div>
+
+        {/* Email Reminder Modal */}
+        <AnimatePresence>
+          {showEmailModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onClick={() => setShowEmailModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-gray-900 border border-pi-red-900/50 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setShowEmailModal(false)}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pi-red-900/30 flex items-center justify-center">
+                    <Paperclip className="w-8 h-8 text-pi-red-500" />
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    PDF İndirildi!
+                  </h3>
+
+                  <p className="text-gray-400 mb-4">
+                    E-posta uygulamanız açılacak. Lütfen indirilen{' '}
+                    <span className="text-pi-red-400 font-medium">pi-sertifikasi.pdf</span>{' '}
+                    dosyasını e-postanıza ek olarak ekleyin.
+                  </p>
+
+                  <div className="bg-black/50 rounded-lg p-3 mb-4">
+                    <p className="text-gray-500 text-xs mb-1">Dosya adı:</p>
+                    <p className="text-white font-mono text-sm">📄 pi-sertifikasi.pdf</p>
+                  </div>
+
+                  <button
+                    onClick={() => setShowEmailModal(false)}
+                    className="w-full py-3 bg-gradient-to-r from-pi-red-700 to-pi-red-900
+                               text-white rounded-xl hover:from-pi-red-600 hover:to-pi-red-800
+                               transition-all font-medium"
+                  >
+                    Anladım
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );
