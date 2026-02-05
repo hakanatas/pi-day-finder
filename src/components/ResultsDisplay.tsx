@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, RefreshCw, Share2 } from 'lucide-react';
+import { Download, RefreshCw, Share2, Mail } from 'lucide-react';
 import type { SearchResult } from '../types';
 import { formatPosition } from '../utils/piSearch';
 import { formatDateForDisplay } from '../utils/dateFormats';
+import { generateCertificate } from '../utils/pdfGenerator';
 
 interface ResultsDisplayProps {
   result: SearchResult;
@@ -21,17 +22,36 @@ export function ResultsDisplay({
   const formattedDate = formatDateForDisplay(date);
 
   const handleShare = async () => {
-    const shareText = `Dogum gunumu pi sayisinin ${formattedPosition}. basamaginda buldum! #PiDay #MyPiDay`;
+    const shareText = `Doğum günümü Pi sayısının ${formattedPosition}. basamağında buldum! #PiDay #MyPiDay`;
 
+    // Try to share with PDF file
+    if (navigator.share && navigator.canShare) {
+      try {
+        const pdfBlob = await generateCertificate({ date, result });
+        const pdfFile = new File([pdfBlob], 'pi-sertifikasi.pdf', { type: 'application/pdf' });
+
+        if (navigator.canShare({ files: [pdfFile] })) {
+          await navigator.share({
+            title: 'Pi Günümü Buldum!',
+            text: shareText,
+            files: [pdfFile],
+          });
+          return;
+        }
+      } catch {
+        // Fall through to text-only share
+      }
+    }
+
+    // Fallback to text-only share
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Pi Gunumu Buldum!',
+          title: 'Pi Günümü Buldum!',
           text: shareText,
           url: window.location.href,
         });
       } catch {
-        // User cancelled or error
         copyToClipboard(shareText);
       }
     } else {
@@ -39,9 +59,41 @@ export function ResultsDisplay({
     }
   };
 
+  const handleEmailShare = async () => {
+    try {
+      // Generate PDF and download first
+      const pdfBlob = await generateCertificate({ date, result });
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'pi-sertifikasi.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      // Then open email client
+      const subject = encodeURIComponent('Pi Doğum Günü Sertifikam!');
+      const body = encodeURIComponent(
+        `Merhaba,\n\nDoğum günümü Pi sayısının ${formattedPosition}. basamağında buldum!\n\n` +
+        `Tarih: ${formattedDate}\n` +
+        `Pi'deki konum: ...${result.context.before}[${result.context.match}]${result.context.after}...\n\n` +
+        `Sertifikamı ekte bulabilirsiniz.\n\n` +
+        `Sen de kendi Pi gününü bul: ${window.location.href}\n\n` +
+        `#PiDay #MyPiDay`
+      );
+
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+
+      alert('PDF indirildi! Lütfen e-postanıza ek olarak ekleyin.');
+    } catch (error) {
+      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Panoya kopyalandi!');
+    alert('Panoya kopyalandı!');
   };
 
   return (
@@ -115,26 +167,35 @@ export function ResultsDisplay({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="grid grid-cols-2 gap-4"
+            className="grid grid-cols-3 gap-3"
           >
             <button
               onClick={onDownload}
-              className="flex items-center justify-center gap-2 py-3 px-4
+              className="flex items-center justify-center gap-2 py-3 px-3
                          bg-gradient-to-r from-pi-red-700 to-pi-red-900
                          text-white rounded-xl hover:from-pi-red-600 hover:to-pi-red-800
-                         transition-all font-medium shadow-lg shadow-pi-red-900/30"
+                         transition-all font-medium shadow-lg shadow-pi-red-900/30 text-sm"
             >
               <Download className="w-5 h-5" />
-              Sertifika Indir
+              İndir
             </button>
             <button
               onClick={handleShare}
-              className="flex items-center justify-center gap-2 py-3 px-4
+              className="flex items-center justify-center gap-2 py-3 px-3
                          bg-white/10 text-white rounded-xl
-                         hover:bg-white/20 transition-all font-medium"
+                         hover:bg-white/20 transition-all font-medium text-sm"
             >
               <Share2 className="w-5 h-5" />
-              Paylas
+              Paylaş
+            </button>
+            <button
+              onClick={handleEmailShare}
+              className="flex items-center justify-center gap-2 py-3 px-3
+                         bg-white/10 text-white rounded-xl
+                         hover:bg-white/20 transition-all font-medium text-sm"
+            >
+              <Mail className="w-5 h-5" />
+              E-posta
             </button>
           </motion.div>
 
