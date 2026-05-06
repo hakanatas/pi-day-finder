@@ -3,23 +3,55 @@ import type { SearchResult } from '../types';
 import { formatPosition } from './piSearch';
 import { generateCertificateNumber } from './certificateCounter';
 
+export type CertificateLanguage = 'tr' | 'en' | 'de';
+
 interface CertificateData {
   date: Date;
   result: SearchResult;
+  language?: CertificateLanguage;
 }
 
-// Turkce ay isimleri
-const TURKISH_MONTHS = [
-  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
-];
+const MONTHS = {
+  tr: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
+};
 
-function formatDateForPdf(date: Date): string {
+function formatDateForPdf(date: Date, lang: CertificateLanguage): string {
   const day = date.getDate();
-  const month = TURKISH_MONTHS[date.getMonth()];
+  const month = MONTHS[lang][date.getMonth()];
   const year = date.getFullYear();
+  if (lang === 'en') return `${month} ${day}, ${year}`;
+  if (lang === 'de') return `${day}. ${month} ${year}`;
   return `${day} ${month} ${year}`;
 }
+
+export const CERT_TEXTS = {
+  tr: {
+    title: 'Pİ DOĞUM GÜNÜ SERTİFİKASI',
+    subtitle: 'tarihi Pİ sayısının sonsuza kadar giden basamakları içinde',
+    foundAt: '. basamakta bulunmuştur.',
+    certNo: 'Sertifika No:',
+    footer: 'Bu Sertifika ve web sitesi FTC #24230 takım desteği ile üretilmiştir.',
+    filename: 'pi-sertifikasi.pdf'
+  },
+  en: {
+    title: 'PI BIRTHDAY CERTIFICATE',
+    subtitle: 'date was found in the infinite digits of PI at the',
+    foundAt: 'th decimal place.',
+    certNo: 'Certificate No:',
+    footer: 'This Certificate and website were created with the support of FTC Team #24230.',
+    filename: 'pi-certificate.pdf'
+  },
+  de: {
+    title: 'PI-GEBURTSTAGSZERTIFIKAT',
+    subtitle: 'wurde in den unendlichen Ziffern der Zahl PI an der',
+    foundAt: '. Stelle gefunden.',
+    certNo: 'Zertifikat-Nr.:',
+    footer: 'Dieses Zertifikat und die Website wurden mit Unterstützung des FTC-Teams #24230 erstellt.',
+    filename: 'pi-zertifikat.pdf'
+  }
+};
 
 // Load font as base64
 async function loadFontAsBase64(url: string): Promise<string> {
@@ -37,7 +69,8 @@ async function loadFontAsBase64(url: string): Promise<string> {
 }
 
 export async function generateCertificate(data: CertificateData): Promise<Blob> {
-  const { date, result } = data;
+  const { date, result, language = 'tr' } = data;
+  const t = CERT_TEXTS[language];
 
   // Create landscape A4 PDF
   const pdf = new jsPDF({
@@ -111,11 +144,11 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
   pdf.line(pageWidth - 10, pageHeight - 25, pageWidth - 25, pageHeight - 25);
   pdf.line(pageWidth - 25, pageHeight - 10, pageWidth - 25, pageHeight - 25);
 
-  // Title with Turkish characters
+  // Title with dynamic characters
   pdf.setTextColor(139, 0, 0);
   pdf.setFontSize(32);
   pdf.setFont('Roboto', 'bold');
-  pdf.text('Pİ DOĞUM GÜNÜ SERTİFİKASI', centerX, 45, { align: 'center' });
+  pdf.text(t.title, centerX, 45, { align: 'center' });
 
   // Decorative line under title
   pdf.setDrawColor(139, 0, 0);
@@ -123,17 +156,17 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
   pdf.line(centerX - 70, 52, centerX + 70, 52);
 
   // Date
-  const dateText = formatDateForPdf(date);
+  const dateText = formatDateForPdf(date, language);
   pdf.setTextColor(50, 50, 50);
   pdf.setFontSize(24);
   pdf.setFont('Roboto', 'bold');
   pdf.text(dateText, centerX, 72, { align: 'center' });
 
-  // Subtitle with Turkish characters
+  // Subtitle with dynamic characters
   pdf.setTextColor(80, 80, 80);
   pdf.setFontSize(11);
   pdf.setFont('Roboto', 'normal');
-  pdf.text('tarihi Pİ sayısının sonsuza kadar giden basamakları içinde', centerX, 84, { align: 'center' });
+  pdf.text(t.subtitle, centerX, 84, { align: 'center' });
 
   // Position number - main highlight
   pdf.setTextColor(139, 0, 0);
@@ -142,11 +175,11 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
   const positionText = formatPosition(result.position);
   pdf.text(positionText, centerX, 120, { align: 'center' });
 
-  // Position label with Turkish characters
+  // Position label with dynamic characters
   pdf.setTextColor(60, 60, 60);
   pdf.setFontSize(12);
   pdf.setFont('Roboto', 'normal');
-  pdf.text('. basamakta bulunmuştur.', centerX, 133, { align: 'center' });
+  pdf.text(t.foundAt, centerX, 133, { align: 'center' });
 
   // Context box
   pdf.setFillColor(250, 248, 248);
@@ -188,13 +221,13 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
   pdf.setFontSize(8);
   pdf.setTextColor(150, 150, 150);
   pdf.setFont('Roboto', 'normal');
-  pdf.text(`Sertifika No: ${certNumber}`, 32, 22, { align: 'left' });
+  pdf.text(`${t.certNo} ${certNumber}`, 32, 22, { align: 'left' });
 
-  // Footer - positioned inside border with Turkish characters
+  // Footer - positioned inside border with dynamic characters
   pdf.setFontSize(9);
   pdf.setTextColor(100, 100, 100);
   pdf.setFont('Roboto', 'normal');
-  pdf.text('Bu Sertifika ve web sitesi FRC #6459 takım desteği ile üretilmiştir.', centerX, pageHeight - 22, { align: 'center' });
+  pdf.text(t.footer, centerX, pageHeight - 22, { align: 'center' });
 
   pdf.setTextColor(139, 0, 0);
   pdf.setFontSize(10);
@@ -206,7 +239,7 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
 
 export function downloadCertificate(
   blob: Blob,
-  filename: string = 'pi-sertifikasi.pdf'
+  filename: string = 'pi-zertifikat.pdf'
 ): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

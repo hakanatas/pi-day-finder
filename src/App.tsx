@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePiDigits } from './hooks/usePiDigits';
 import { searchAllFormats } from './utils/piSearch';
-import { generateCertificate, downloadCertificate } from './utils/pdfGenerator';
+import { generateCertificate, downloadCertificate, type CertificateLanguage, CERT_TEXTS } from './utils/pdfGenerator';
 import { PiBackground } from './components/PiBackground';
 import { DateInputForm } from './components/DateInputForm';
 import { ResultsDisplay } from './components/ResultsDisplay';
@@ -42,15 +42,16 @@ function App() {
     [piDigits.digits]
   );
 
-  const handleDownload = useCallback(async () => {
+  const handleDownload = useCallback(async (language: CertificateLanguage) => {
     if (!currentDate || !currentResult) return;
 
     try {
       const blob = await generateCertificate({
         date: currentDate,
         result: currentResult,
+        language,
       });
-      downloadCertificate(blob);
+      downloadCertificate(blob, CERT_TEXTS[language].filename);
     } catch (error) {
       console.error('Sertifika olusturulamadi:', error);
       alert('Sertifika olusturulurken bir hata olustu.');
@@ -219,7 +220,7 @@ function App() {
               rel="noopener noreferrer"
               className="text-pi-red-500 hover:text-pi-red-400 font-medium transition-colors"
             >
-              FRC #6459 AG Robotik Takimi
+              FTC #24230 AG Robotik Takimi
             </a>
             {' '}destegiyle olusturulmustur
           </p>

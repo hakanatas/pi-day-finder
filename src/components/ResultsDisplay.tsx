@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, RefreshCw, Share2, Mail, X, Paperclip } from 'lucide-react';
+import { Download, RefreshCw, Share2, Mail, X, Paperclip, Globe } from 'lucide-react';
 import type { SearchResult } from '../types';
 import { formatPosition } from '../utils/piSearch';
 import { formatDateForDisplay } from '../utils/dateFormats';
-import { generateCertificate } from '../utils/pdfGenerator';
+import { generateCertificate, type CertificateLanguage, CERT_TEXTS } from '../utils/pdfGenerator';
 
 interface ResultsDisplayProps {
   result: SearchResult;
   date: Date;
-  onDownload: () => void;
+  onDownload: (language: CertificateLanguage) => void;
   onSearchAgain: () => void;
 }
 
@@ -20,17 +20,19 @@ export function ResultsDisplay({
   onSearchAgain,
 }: ResultsDisplayProps) {
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [language, setLanguage] = useState<CertificateLanguage>('tr');
   const formattedPosition = formatPosition(result.position);
   const formattedDate = formatDateForDisplay(date);
 
   const handleShare = async () => {
     const shareText = `Doğum günümü Pi sayısının ${formattedPosition}. basamağında buldum! #PiDay #MyPiDay`;
+    const filename = CERT_TEXTS[language].filename;
 
     // Try to share with PDF file
     if (navigator.share && navigator.canShare) {
       try {
-        const pdfBlob = await generateCertificate({ date, result });
-        const pdfFile = new File([pdfBlob], 'pi-sertifikasi.pdf', { type: 'application/pdf' });
+        const pdfBlob = await generateCertificate({ date, result, language });
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
         if (navigator.canShare({ files: [pdfFile] })) {
           await navigator.share({
@@ -63,12 +65,13 @@ export function ResultsDisplay({
 
   const handleEmailShare = async () => {
     try {
+      const filename = CERT_TEXTS[language].filename;
       // Generate PDF and download first
-      const pdfBlob = await generateCertificate({ date, result });
+      const pdfBlob = await generateCertificate({ date, result, language });
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'pi-sertifikasi.pdf';
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -106,7 +109,7 @@ ${window.location.href}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌐 www.zekapusulasi.com
-🤖 FRC #6459 AG Robotik Takımı desteğiyle
+🤖 FTC #24230 AG Robotik Takımı desteğiyle
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
@@ -187,6 +190,26 @@ ${window.location.href}
             </p>
           </motion.div>
 
+          {/* Language Selector */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Globe className="w-4 h-4 text-gray-400" />
+            <div className="flex bg-white/5 rounded-lg p-1">
+              {(['tr', 'en', 'de'] as CertificateLanguage[]).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    language === lang
+                      ? 'bg-pi-red-900/50 text-white'
+                      : 'text-gray-400 hover:text-gray-200 hover:bg-white/10'
+                  }`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Action Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -195,7 +218,7 @@ ${window.location.href}
             className="grid grid-cols-3 gap-3"
           >
             <button
-              onClick={onDownload}
+              onClick={() => onDownload(language)}
               className="flex items-center justify-center gap-2 py-3 px-3
                          bg-gradient-to-r from-pi-red-700 to-pi-red-900
                          text-white rounded-xl hover:from-pi-red-600 hover:to-pi-red-800
@@ -270,13 +293,13 @@ ${window.location.href}
 
                   <p className="text-gray-400 mb-4">
                     E-posta uygulamanız açılacak. Lütfen indirilen{' '}
-                    <span className="text-pi-red-400 font-medium">pi-sertifikasi.pdf</span>{' '}
+                    <span className="text-pi-red-400 font-medium">{CERT_TEXTS[language].filename}</span>{' '}
                     dosyasını e-postanıza ek olarak ekleyin.
                   </p>
 
                   <div className="bg-black/50 rounded-lg p-3 mb-4">
                     <p className="text-gray-500 text-xs mb-1">Dosya adı:</p>
-                    <p className="text-white font-mono text-sm">📄 pi-sertifikasi.pdf</p>
+                    <p className="text-white font-mono text-sm">📄 {CERT_TEXTS[language].filename}</p>
                   </div>
 
                   <button
