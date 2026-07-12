@@ -88,3 +88,51 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(127, 29, 29, 0.2);
 }
+
+/* Shimmer sweep across primary buttons */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  height: 100%;
+  width: 60%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  animation: shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shimmer {
+  0% { left: -150%; }
+  55% { left: 150%; }
+  100% { left: 150%; }
+}
+
+/* Pulsing glow on the matched date inside pi */
+.match-pulse {
+  animation: match-pulse 1.8s ease-in-out 2s infinite;
+}
+@keyframes match-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.35); }
+  50% { box-shadow: 0 0 22px rgba(239, 68, 68, 0.85); }
+}
+
+/* Breathing border glow around the result card */
+.result-card-glow {
+  animation: card-glow 4s ease-in-out infinite;
+}
+@keyframes card-glow {
+  0%, 100% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 24px rgba(127, 29, 29, 0.25); }
+  50% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 52px rgba(153, 27, 27, 0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-shimmer::after,
+  .match-pulse,
+  .result-card-glow {
+    animation: none;
+  }
+}

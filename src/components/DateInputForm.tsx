@@ -18,21 +18,33 @@ export function DateInputForm({ onSearch, isSearching }: DateInputFormProps) {
     }
   };
 
+  const item = {
+    hidden: { opacity: 0, y: 18 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
+  };
+
   return (
     <motion.form
       onSubmit={handleSubmit}
       className="w-full max-w-md mx-auto"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      initial="hidden"
+      animate="visible"
+      variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
     >
       <div className="bg-black/60 backdrop-blur-md rounded-2xl p-8 border border-pi-red-900/30 shadow-2xl">
         {/* Title */}
-        <div className="text-center mb-8">
+        <motion.div variants={item} className="text-center mb-8">
           <motion.div
             className="text-6xl mb-4"
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            animate={{
+              y: [0, -8, 0],
+              textShadow: [
+                '0 0 18px rgba(239,68,68,0.35)',
+                '0 0 42px rgba(239,68,68,0.85)',
+                '0 0 18px rgba(239,68,68,0.35)',
+              ],
+            }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
           >
             <span className="text-pi-red-500 font-serif">π</span>
           </motion.div>
@@ -42,10 +54,10 @@ export function DateInputForm({ onSearch, isSearching }: DateInputFormProps) {
           <p className="text-gray-400 text-sm">
             Dogum tarihinin pi sayisinin hangi basamaginda oldugunu kesfet
           </p>
-        </div>
+        </motion.div>
 
         {/* Date Picker */}
-        <div className="mb-6">
+        <motion.div variants={item} className="mb-6">
           <label className="block text-gray-300 text-sm mb-2 font-medium">
             Dogum Tarihin
           </label>
@@ -63,28 +75,29 @@ export function DateInputForm({ onSearch, isSearching }: DateInputFormProps) {
             />
             <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 text-pi-red-500 w-5 h-5 pointer-events-none" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Info Text */}
-        <div className="mb-6 p-3 bg-pi-red-950/30 rounded-lg border border-pi-red-900/20">
+        <motion.div variants={item} className="mb-6 p-3 bg-pi-red-950/30 rounded-lg border border-pi-red-900/20">
           <p className="text-gray-400 text-xs">
             Tarihin GGAAYY formatinda (ornek: 01/01/1980 = 010180)
             pi sayisinin ilk 10.000.000 basamaginda aranacaktir.
           </p>
-        </div>
+        </motion.div>
 
         {/* Submit Button */}
         <motion.button
           type="submit"
           disabled={!selectedDate || isSearching}
-          className="w-full py-4 bg-gradient-to-r from-pi-red-700 to-pi-red-900
+          variants={item}
+          className="btn-shimmer w-full py-4 bg-gradient-to-r from-pi-red-700 to-pi-red-900
                      text-white font-bold rounded-xl text-lg
                      disabled:opacity-50 disabled:cursor-not-allowed
                      hover:from-pi-red-600 hover:to-pi-red-800
                      focus:outline-none focus:ring-2 focus:ring-pi-red-500/50
-                     transition-all shadow-lg shadow-pi-red-900/30"
-          whileHover={{ scale: isSearching ? 1 : 1.02 }}
-          whileTap={{ scale: isSearching ? 1 : 0.98 }}
+                     transition-colors shadow-lg shadow-pi-red-900/30"
+          whileHover={{ scale: isSearching ? 1 : 1.03, y: isSearching ? 0 : -2 }}
+          whileTap={{ scale: isSearching ? 1 : 0.97 }}
         >
           {isSearching ? (
             <span className="flex items-center justify-center gap-3">

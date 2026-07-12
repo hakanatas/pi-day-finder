@@ -6,8 +6,16 @@ import { generateCertificate, downloadCertificate, type CertificateLanguage, CER
 import { PiBackground } from './components/PiBackground';
 import { DateInputForm } from './components/DateInputForm';
 import { ResultsDisplay } from './components/ResultsDisplay';
-import { LoadingSpinner } from './components/LoadingSpinner';
+import { DigitScanner } from './components/DigitScanner';
 import type { SearchResult, AppStage } from './types';
+
+// Shared cinematic stage transition: blur in / blur out
+const stageVariants = {
+  initial: { opacity: 0, scale: 0.96, filter: 'blur(10px)' },
+  animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+  exit: { opacity: 0, scale: 1.05, filter: 'blur(10px)' },
+};
+const stageTransition = { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const };
 
 function App() {
   const piDigits = usePiDigits();
@@ -27,7 +35,7 @@ function App() {
       setCurrentDate(date);
       setAppState({ stage: 'searching', date });
 
-      // Small delay for animation
+      // Let the digit-scanner animation play before revealing the result
       setTimeout(() => {
         const result = searchAllFormats(piDigits.digits, date);
 
@@ -37,7 +45,7 @@ function App() {
         } else {
           setAppState({ stage: 'notFound', date });
         }
-      }, 1000);
+      }, 2300);
     },
     [piDigits.digits]
   );
@@ -83,13 +91,35 @@ function App() {
               exit={{ opacity: 0 }}
               className="text-center"
             >
-              <motion.div
-                className="text-8xl mb-8"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              >
-                <span className="text-pi-red-500 font-serif pi-glow">π</span>
-              </motion.div>
+              <div className="relative inline-block mb-8">
+                {/* orbiting digits */}
+                <motion.div
+                  className="absolute inset-[-28px]"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                >
+                  {['3', '1', '4'].map((d, i) => (
+                    <span
+                      key={d + i}
+                      className="absolute text-pi-red-400/80 font-mono text-xl"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        transform: `rotate(${i * 120}deg) translateY(-4.6rem)`,
+                      }}
+                    >
+                      {d}
+                    </span>
+                  ))}
+                </motion.div>
+                <motion.div
+                  className="text-8xl"
+                  animate={{ scale: [1, 1.06, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <span className="text-pi-red-500 font-serif pi-glow">π</span>
+                </motion.div>
+              </div>
               <h2 className="text-2xl text-white mb-4 font-serif">Pi Yukleniyor...</h2>
               <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
                 <motion.div
@@ -130,9 +160,11 @@ function App() {
           {appState.stage === 'input' && (
             <motion.div
               key="input"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              variants={stageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={stageTransition}
             >
               <DateInputForm onSearch={handleSearch} isSearching={false} />
             </motion.div>
@@ -142,22 +174,14 @@ function App() {
           {appState.stage === 'searching' && (
             <motion.div
               key="searching"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center"
+              variants={stageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={stageTransition}
+              className="w-full"
             >
-              <motion.div
-                className="text-8xl mb-8"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              >
-                <span className="text-pi-red-500 font-serif pi-glow">π</span>
-              </motion.div>
-              <div className="flex items-center justify-center gap-3 text-white text-xl">
-                <LoadingSpinner size="md" />
-                <span>Pi'de araniyor...</span>
-              </div>
+              <DigitScanner digits={piDigits.digits} />
             </motion.div>
           )}
 
@@ -165,9 +189,11 @@ function App() {
           {appState.stage === 'result' && currentResult && currentDate && (
             <motion.div
               key="result"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              variants={stageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={stageTransition}
             >
               <ResultsDisplay
                 result={currentResult}
